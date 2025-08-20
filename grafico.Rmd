@@ -1,0 +1,46 @@
+---
+title: "graficos"
+output: html_document
+date: "2025-08-20"
+---
+
+```{r setup, include=FALSE}
+titanic <- as_tibble(read.csv("https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv"))
+
+# Reemplazar edades NA con la mediana
+titanic$Age[is.na(titanic$Age)] <- median(titanic$Age, na.rm = TRUE)
+
+# Eliminar duplicados
+titanic <- titanic %>% distinct()
+
+titanic <- titanic %>%
+  mutate(Sex = as.factor(Sex),
+         Pclass = as.factor(Pclass))
+```
+
+```{r, eval=FALSE}
+library(shiny)
+# install.packages("shiny")
+
+ui <- fluidPage(
+  titlePanel("Dashboard Titanic"),
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput("edad", "Edad:", min=0, max=80, value=30)
+    ),
+    mainPanel(
+      plotOutput("hist")
+    )
+  )
+)
+
+server <- function(input, output) {
+  output$hist <- renderPlot({
+    ggplot(titanic, aes(x=Age)) +
+      geom_histogram(binwidth=5, fill="skyblue", color="white") +
+      geom_vline(xintercept=input$edad, color="red", size=1)
+  })
+}
+
+shinyApp(ui=ui, server=server)
+```
